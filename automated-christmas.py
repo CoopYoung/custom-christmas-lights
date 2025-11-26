@@ -201,9 +201,10 @@ def rainbow_effect(strip, stop_event):
         rainbow_cycle(strip)
 
 def snake_effect(strip, stop_event):
-    snake_length = 5  # Initial length
+    snake_length = 15  # Initial length
     position = 0  # Starting position
     direction = 1  # 1 = forward, -1 = backward
+    food = random.randint(0, strip.numPixels() - 1)
     while not stop_event.is_set():
         # Clear strip
         for i in range(strip.numPixels()):
@@ -216,6 +217,13 @@ def snake_effect(strip, stop_event):
                 g = random.randint(0, 255)
                 b = random.randint(0, 255)
                 strip.setPixelColor(position - i * direction, Color(r, g, b))
+            if position == food:
+                food = random.randint(0, strip.numPixels() - 1)
+                snake_length += 1  # Grow snake
+        if snake_length > strip.numPixels() == strip.numPixels()- 2:
+            wheel(snake_length if snake_length < 255 else 255)
+            snake_length = 15  # Reset length if too long
+
         
         strip.show()
         
@@ -319,6 +327,7 @@ def fire_flicker_effect(strip, stop_event):
         
         strip.show()
         time.sleep(0.05 / EFFECT_SPEED)  # Fast flicker for realism
+
 # Turn off all LEDs
 def turn_off(strip):
     color_wipe(strip, Color(0, 0, 0), 10)
