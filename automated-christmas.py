@@ -329,6 +329,20 @@ def fire_flicker_effect(strip, stop_event):
         strip.show()
         time.sleep(0.05 / EFFECT_SPEED)  # Fast flicker for realism
 
+def phase_out(strip, stop_event):
+    steps = 50
+    delay = 50 / EFFECT_SPEED  # Adjust for speed
+    for step in range(steps):
+        if stop_event.is_set():
+            break
+        factor = (steps - step) / steps
+        for i in range(strip.numPixels()):
+            r = int(((strip.getPixelColor(i) >> 16) & 0xFF) * factor)
+            g = int(((strip.getPixelColor(i) >> 8) & 0xFF) * factor)
+            b = int((strip.getPixelColor(i) & 0xFF) * factor)
+            strip.setPixelColor(i, Color(r, g, b))
+        strip.show()
+        time.sleep(delay / 1000.0)
 # Turn off all LEDs
 def turn_off(strip):
     color_wipe(strip, Color(0, 0, 0), 10)
@@ -353,6 +367,8 @@ def get_effect_function(effect_name):
         return twinkling_starfield_effect
     elif effect_name == 'fire_flicker':
         return fire_flicker_effect
+    elif effect_name == 'phase_out':
+        return phase_out
     else:
         raise ValueError("Unknown effect: " + effect_name)
 
@@ -562,6 +578,7 @@ def index():
                 <button onclick="callEndpoint('/effect/random_multi')">Random Multi-Color</button>
                 <button onclick="callEndpoint('/effect/twinkle')">Twinkle Starfield</button>
                 <button onclick="callEndpoint('/effect/fire_flicker')">Fire Flicker</button>
+                <button onclick="callEndpoint('/effect/phase_out')">Phase Out</button>
             </div>
             <h2>Custom Solid Color</h2>
             <form id="custom_color_form" onsubmit="submitForm(event, '/custom_color')">
