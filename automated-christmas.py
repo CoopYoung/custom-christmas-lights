@@ -5,6 +5,7 @@ import socket
 import json
 import random
 import subprocess
+import shutil
 from rpi_ws281x import PixelStrip, Color
 from astral import LocationInfo
 from astral.sun import sun
@@ -40,8 +41,9 @@ EFFECT_SPEED = 1.0
 # Persistence file (new feature: save/load settings)
 CONFIG_FILE = 'led_config.json'
 
-#Music stream file 
+#Music stream config 
 MUSIC_STREAM_URL = 'http://ice1.somafm.com/christmas-128-mp3'
+BT_MAC = '2C:41:A1:66:59:5A'
 
 # Music process (global to control playback)
 music_process = None
@@ -895,12 +897,38 @@ def set_effect_speed():
         broadcast_state()
         return jsonify({"message": f"Effect speed set to {speed}!"}), 200
     return jsonify({"error": "Invalid speed (0.5-2.0)!"}), 400
+
+def connect_bluetooth():
+    global music_process  # If needed for coordination
+    try:
+        # Check if bluetoothctl exists
+        if not shutil.which('bluetoothctl'):
+            print("bluetoothctl not found—install bluez if missing.")
+            return False
+        
+        # Connect (non-blocking)
+        connect_result = subprocess.run(['bluetoothctl', 'connect', BT_MAC], capture_output=True, text=True)
+        if 'Connection successful' in connect_result.stdout or 'already connected' in connect_result.stdout.lower():
+            print(f"Bluetooth connected to {BT_MAC}")
+            return True
+        else:
+            print(f"Connection failed: {connect_result.stderr}")
+            return False
+    except Exception as e:
+        print(f"Bluetooth connect error: {e}")
+        return False
+    
 @app.route('/play_music')
 @auth.login_required
 def play_music():
     global music_process
     if music_process and music_process.poll() is None:
         return jsonify({"message": "Music already playing!"}), 200
+    
+    #Connect to Bluetooth first
+    if not connect_bluetooth():
+        return jsonify({"error": "Failed to connect Bluetooth speaker!"}), 500
+    
     try:
         music_process = subprocess.Popen(['mpg123', '-q', MUSIC_STREAM_URL])
         return jsonify({"message": "Christmas music started!"}), 200
