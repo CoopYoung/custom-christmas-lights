@@ -212,6 +212,7 @@ def snake_effect(strip, stop_event):
         
         # Draw snake with random colors
         for i in range(snake_length):
+            strip.setPixelColor(food, Color(255, 0, 0))  # Food is red
             if 0 <= position - i * direction < strip.numPixels():
                 r = random.randint(0, 255)
                 g = random.randint(0, 255)
@@ -219,7 +220,6 @@ def snake_effect(strip, stop_event):
                 strip.setPixelColor(position - i * direction, Color(r, g, b))
             if position == food:
                 food = random.randint(0, strip.numPixels() - 1)
-                strip.setPixelColor(food, Color(255, 0, 0))  # Food is red
                 snake_length += 1  # Grow snake
         if snake_length > strip.numPixels() == strip.numPixels()- 2:
             wheel(snake_length if snake_length < 255 else 255)
