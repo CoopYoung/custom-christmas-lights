@@ -90,6 +90,17 @@ app.config['SECRET_KEY'] = 'secret!'  # For SocketIO
 socketio = SocketIO(app)
 auth = HTTPBasicAuth()
 
+# Helper to get local IP for web access
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"  # Fallback
+
 def get_env(var_name, default=0):
     try:
         value = os.environ.get(var_name)
@@ -103,7 +114,8 @@ def get_env(var_name, default=0):
         
 
 users = {
-    get_env(UNAME): get_env(CHRISTMASPASSWORD)  
+    #get_env(UNAME): get_env(CHRISTMASPASSWORD)  
+    "admin": "password123"
 }
 
 @auth.verify_password

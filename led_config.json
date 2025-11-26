@@ -1,0 +1,1 @@
+{"led_count": 300, "brightness": 190, "effect": "solid", "loc_name": "Austin", "loc_region": "Texas", "loc_timezone": "America/Chicago", "loc_lat": 30.2672, "loc_lon": -97.7431, "turn_off_hour": 23, "turn_off_minute": 0, "custom_solid_color": [255, 0, 0], "effect_speed": 1.5}
