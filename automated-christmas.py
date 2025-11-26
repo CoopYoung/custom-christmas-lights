@@ -4,6 +4,7 @@ import threading
 import socket
 import json
 import random
+import subprocess
 from rpi_ws281x import PixelStrip, Color
 from astral import LocationInfo
 from astral.sun import sun
@@ -38,6 +39,12 @@ EFFECT_SPEED = 1.0
 
 # Persistence file (new feature: save/load settings)
 CONFIG_FILE = 'led_config.json'
+
+#Music stream file 
+MUSIC_STREAM_URL = 'https://somafm.com/player24/station/christmas' \
+
+# Music process (global to control playback)
+music_process = None
 
 # Load saved config if exists
 def load_config():
@@ -630,6 +637,11 @@ def index():
                 <button onclick="callEndpoint('/on')">Turn On</button>
                 <button onclick="callEndpoint('/off')">Turn Off</button>
             </div>
+            <h2>Music Control</h2>
+            <div class="controls">
+                <button onclick="callEndpoint('/play_music')">Play Christmas Music</button>
+                <button onclick="callEndpoint('/stop_music')">Stop Music</button>
+            </div>
             <h2>Select Effect</h2>
             <div class="effect-buttons">
                 <button onclick="callEndpoint('/effect/solid')">Solid</button>
@@ -883,6 +895,28 @@ def set_effect_speed():
         broadcast_state()
         return jsonify({"message": f"Effect speed set to {speed}!"}), 200
     return jsonify({"error": "Invalid speed (0.5-2.0)!"}), 400
+@app.route('/play_music')
+@auth.login_required
+def play_music():
+    global music_process
+    if music_process and music_process.poll() is None:
+        return jsonify({"message": "Music already playing!"}), 200
+    try:
+        music_process = subprocess.Popen(['mpg123', '-q', MUSIC_STREAM_URL])
+        return jsonify({"message": "Christmas music started!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# New endpoint: Stop music
+@app.route('/stop_music')
+@auth.login_required
+def stop_music():
+    global music_process
+    if music_process and music_process.poll() is None:
+        music_process.terminate()
+        music_process = None
+        return jsonify({"message": "Music stopped!"}), 200
+    return jsonify({"message": "No music playing!"}), 200
 
 # Main scheduling logic
 def main_logic():
