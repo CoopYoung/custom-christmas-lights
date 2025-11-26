@@ -348,18 +348,17 @@ def michigan(strip, stop_event):
     evens = [i for i in range(0, strip.numPixels(), 2)]
     odds = [i for i in range(1, strip.numPixels(), 2)]
     
-    iteration = 0
+    iteration = 1
     while not stop_event.is_set():
         for i in range(strip.numPixels() // 2):
-            if iteration % 2 == 0:
+            if iteration:
                 strip.setPixelColor(evens[i], Color(200, 255, 0))  #Maize
                 strip.setPixelColor(odds[i], Color(7, 23, 242))  # Blue
             else:
                 strip.setPixelColor(evens[i], Color(7, 23, 242))  #Blue
                 strip.setPixelColor(odds[i], Color(200, 255, 0))  # Maize
 
-            iteration += 1
-            iteration %= 10
+            iteration = 1 - iteration  # Toggle pattern
             time.sleep(0.1 / EFFECT_SPEED)
         strip.show()
         time.sleep(0.05 / EFFECT_SPEED)
