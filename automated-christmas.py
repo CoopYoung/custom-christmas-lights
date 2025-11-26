@@ -344,24 +344,64 @@ def phase_out(strip, stop_event):
         strip.show()
         time.sleep(delay / 1000.0)
 def michigan(strip, stop_event):
-    # Maize and Blue alternating pattern
-    evens = [i for i in range(0, strip.numPixels(), 2)]
-    odds = [i for i in range(1, strip.numPixels(), 2)]
+    # Maize and Blue colors
+    maize = Color(200, 255, 0)
+    blue = Color(7, 23, 242)
     
-    iteration = 1
+    # Precompute positions
+    evens = list(range(0, strip.numPixels(), 2))
+    odds = list(range(1, strip.numPixels(), 2))
+    
+    iteration = 0
     while not stop_event.is_set():
-        for i in range(strip.numPixels() // 2):
-            if iteration:
-                strip.setPixelColor(evens[i], Color(200, 255, 0))  #Maize
-                strip.setPixelColor(odds[i], Color(7, 23, 242))  # Blue
-            else:
-                strip.setPixelColor(evens[i], Color(7, 23, 242))  #Blue
-                strip.setPixelColor(odds[i], Color(200, 255, 0))  # Maize
-
-            iteration = 1 - iteration  # Toggle pattern
-            time.sleep(0.1 / EFFECT_SPEED)
-        strip.show()
-        time.sleep(0.05 / EFFECT_SPEED)
+        # Determine current and target colors for evens/odds
+        if iteration % 2 == 0:
+            even_color_start = maize
+            odd_color_start = blue
+            even_color_target = blue
+            odd_color_target = maize
+        else:
+            even_color_start = blue
+            odd_color_start = maize
+            even_color_target = maize
+            odd_color_target = blue
+        
+        # Fade transition over steps
+        fade_steps = 20  # Number of fade frames; increase for slower fade
+        for step in range(fade_steps + 1):
+            if stop_event.is_set(): return
+            
+            # Interpolation factor (0 to 1)
+            t = step / fade_steps
+            
+            # Lerp function for color components
+            def lerp(start, target, t):
+                return int(start + t * (target - start))
+            
+            # Compute interpolated colors
+            even_r = lerp((even_color_start >> 16) & 0xFF, (even_color_target >> 16) & 0xFF, t)
+            even_g = lerp((even_color_start >> 8) & 0xFF, (even_color_target >> 8) & 0xFF, t)
+            even_b = lerp(even_color_start & 0xFF, even_color_target & 0xFF, t)
+            odd_r = lerp((odd_color_start >> 16) & 0xFF, (odd_color_target >> 16) & 0xFF, t)
+            odd_g = lerp((odd_color_start >> 8) & 0xFF, (odd_color_target >> 8) & 0xFF, t)
+            odd_b = lerp(odd_color_start & 0xFF, odd_color_target & 0xFF, t)
+            
+            even_color = Color(even_r, even_g, even_b)
+            odd_color = Color(odd_r, odd_g, odd_b)
+            
+            # Set pixels
+            for pos in evens:
+                strip.setPixelColor(pos, even_color)
+            for pos in odds:
+                strip.setPixelColor(pos, odd_color)
+            
+            strip.show()
+            time.sleep(0.02 / EFFECT_SPEED)  # Frame delay; adjust for smoothness
+        
+        # Hold the pattern for a bit before next fade
+        time.sleep(1.0 / EFFECT_SPEED)  # Pause duration; adjust as needed
+        
+        iteration += 1
 # Turn off all LEDs
 def turn_off(strip):
     color_wipe(strip, Color(0, 0, 0), 10)
