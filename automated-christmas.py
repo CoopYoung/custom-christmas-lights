@@ -221,8 +221,10 @@ def snake_effect(strip, stop_event):
             if position == food:
                 food = random.randint(0, strip.numPixels() - 1)
                 snake_length += 1  # Grow snake
-        if snake_length > strip.numPixels() - 2:
-            wheel(snake_length if snake_length < 255 else 255)
+        if snake_length > strip.numPixels() // 2:
+            #Burst
+            for i in range(strip.numPixels()):
+                strip.setPixelColor(i, Color(255, 255, 255))
             snake_length = 15  # Reset length if too long
 
         
