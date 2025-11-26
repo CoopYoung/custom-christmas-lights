@@ -344,30 +344,25 @@ def phase_out(strip, stop_event):
         strip.show()
         time.sleep(delay / 1000.0)
 def michigan(strip, stop_event):
-    evens = []
-    odds = []
+    # Maize and Blue alternating pattern
     evens = [i for i in range(0, strip.numPixels(), 2)]
-    
     odds = [i for i in range(1, strip.numPixels(), 2)]
-
+    
     iteration = 0
     while not stop_event.is_set():
-        for i in range(strip.numPixels()):
+        for i in range(strip.numPixels() // 2):
             if iteration % 2 == 0:
-                even_idx = i // 2
-                strip.setPixelColor(evens[even_idx], Color(202, 253, 63))  #Maize
-                odd_idx = i // 2
-                strip.setPixelColor(odds[odd_idx], Color(7, 23, 242))  # Blue
+                strip.setPixelColor(evens[i], Color(200, 255, 0))  #Maize
+                strip.setPixelColor(odds[i], Color(7, 23, 242))  # Blue
             else:
-                even_idx = i // 2
-                strip.setPixelColor(evens[even_idx], Color(7, 23, 242))  #Blue
-                odd_idx = i // 2
-                strip.setPixelColor(odds[odd_idx], Color(202, 253, 63))  # Maize
+                strip.setPixelColor(evens[i], Color(7, 23, 242))  #Blue
+                strip.setPixelColor(odds[i], Color(200, 255, 0))  # Maize
 
             iteration += 1
             iteration %= 10
-            
+            time.sleep(0.1 / EFFECT_SPEED)
         strip.show()
+        time.sleep(0.05 / EFFECT_SPEED)
 # Turn off all LEDs
 def turn_off(strip):
     color_wipe(strip, Color(0, 0, 0), 10)
