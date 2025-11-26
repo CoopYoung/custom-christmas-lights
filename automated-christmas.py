@@ -343,6 +343,31 @@ def phase_out(strip, stop_event):
             strip.setPixelColor(i, Color(r, g, b))
         strip.show()
         time.sleep(delay / 1000.0)
+def michigan(strip, stop_event):
+    evens = []
+    odds = []
+    evens = [i for i in range(0, strip.numPixels(), 2)]
+    
+    odds = [i for i in range(1, strip.numPixels(), 2)]
+
+    iteration = 0
+    while not stop_event.is_set():
+        for i in range(strip.numPixels()):
+            if iteration % 2 == 0:
+                even_idx = i // 2
+                strip.setPixelColor(evens[even_idx], Color(202, 253, 63))  #Maize
+                odd_idx = i // 2
+                strip.setPixelColor(odds[odd_idx], Color(7, 23, 242))  # Blue
+            else:
+                even_idx = i // 2
+                strip.setPixelColor(evens[even_idx], Color(7, 23, 242))  #Blue
+                odd_idx = i // 2
+                strip.setPixelColor(odds[odd_idx], Color(202, 253, 63))  # Maize
+
+            iteration += 1
+            iteration %= 10
+            
+        strip.show()
 # Turn off all LEDs
 def turn_off(strip):
     color_wipe(strip, Color(0, 0, 0), 10)
@@ -369,6 +394,8 @@ def get_effect_function(effect_name):
         return fire_flicker_effect
     elif effect_name == 'phase_out':
         return phase_out
+    elif effect_name == 'michigan':
+        return michigan
     else:
         raise ValueError("Unknown effect: " + effect_name)
 
@@ -579,6 +606,7 @@ def index():
                 <button onclick="callEndpoint('/effect/twinkle')">Twinkle Starfield</button>
                 <button onclick="callEndpoint('/effect/fire_flicker')">Fire Flicker</button>
                 <button onclick="callEndpoint('/effect/phase_out')">Phase Out</button>
+                <button onclick="callEndpoint('/effect/michigan')">Michigan</button>
             </div>
             <h2>Custom Solid Color</h2>
             <form id="custom_color_form" onsubmit="submitForm(event, '/custom_color')">
