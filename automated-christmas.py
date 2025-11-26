@@ -3,6 +3,7 @@ import time
 import threading
 import socket
 import json
+import random
 from rpi_ws281x import PixelStrip, Color
 from astral import LocationInfo
 from astral.sun import sun
@@ -199,6 +200,125 @@ def rainbow_effect(strip, stop_event):
     while not stop_event.is_set():
         rainbow_cycle(strip)
 
+def snake_effect(strip, stop_event):
+    snake_length = 5  # Initial length
+    position = 0  # Starting position
+    direction = 1  # 1 = forward, -1 = backward
+    while not stop_event.is_set():
+        # Clear strip
+        for i in range(strip.numPixels()):
+            strip.setPixelColor(i, Color(0, 0, 0))
+        
+        # Draw snake with random colors
+        for i in range(snake_length):
+            if 0 <= position - i * direction < strip.numPixels():
+                r = random.randint(0, 255)
+                g = random.randint(0, 255)
+                b = random.randint(0, 255)
+                strip.setPixelColor(position - i * direction, Color(r, g, b))
+        
+        strip.show()
+        
+        # Move and bounce
+        position += direction
+        if position >= strip.numPixels() or position < 0:
+            direction *= -1
+            position += direction * 2  # Adjust to bounce smoothly
+            snake_length = max(1, snake_length + random.choice([-1, 1]))  # Grow/shrink randomly
+        
+        time.sleep(0.1 / EFFECT_SPEED)  # Speed control
+
+def plague_spread_effect(strip, stop_event):
+    mid = strip.numPixels() // 2  # Start in middle
+    infected = [mid]  # Initial infected LED
+    base_color = Color(random.randint(50, 255), random.randint(0, 100), random.randint(0, 100))  # Random starting color
+    
+    while not stop_event.is_set():
+        # Light infected LEDs with color variations
+        for i in infected:
+            variation = random.randint(-20, 20)
+            r = max(0, min(255, (base_color >> 16) + variation))
+            g = max(0, min(255, ((base_color >> 8) & 0xFF) + variation))
+            b = max(0, min(255, (base_color & 0xFF) + variation))
+            strip.setPixelColor(i, Color(r, g, b))
+        strip.show()
+        
+        # Spread to neighbors
+        new_infected = set(infected)
+        for pos in infected:
+            if pos > 0 and pos - 1 not in infected:
+                new_infected.add(pos - 1)
+            if pos < strip.numPixels() - 1 and pos + 1 not in infected:
+                new_infected.add(pos + 1)
+        infected = list(new_infected)
+        
+        # Reset if fully spread
+        if len(infected) == strip.numPixels():
+            time.sleep(1 / EFFECT_SPEED)  # Pause at full
+            infected = [mid]  # Reset to middle
+            base_color = Color(random.randint(50, 255), random.randint(0, 100), random.randint(0, 100))  # New color
+        
+        time.sleep(0.2 / EFFECT_SPEED)  # Spread speed
+        
+        # Clear uninfected
+        for i in range(strip.numPixels()):
+            if i not in infected:
+                strip.setPixelColor(i, Color(0, 0, 0))
+import colorsys  # Add this import at top if not present
+
+def random_multi_color_effect(strip, stop_event):
+    while not stop_event.is_set():
+        for i in range(strip.numPixels()):
+            # Generate random HSL for varied colors
+            h = random.random()  # Hue 0-1
+            s = random.uniform(0.5, 1.0)  # Saturation for vibrant colors
+            l = random.uniform(0.3, 0.7)  # Lightness for variety
+            r, g, b = [int(x * 255) for x in colorsys.hls_to_rgb(h, l, s)]
+            strip.setPixelColor(i, Color(r, g, b))
+        
+        strip.show()
+        time.sleep(1 / EFFECT_SPEED)  # Change rate
+
+def twinkling_starfield_effect(strip, stop_event):
+    intensities = [0] * strip.numPixels()  # Per-LED brightness
+    while not stop_event.is_set():
+        for i in range(strip.numPixels()):
+            # Randomly adjust intensity
+            intensities[i] += random.randint(-20, 20)
+            intensities[i] = max(0, min(255, intensities[i]))
+            # White-yellow tint
+            color = Color(intensities[i], intensities[i], random.randint(200, 255) if random.random() > 0.5 else intensities[i])
+            strip.setPixelColor(i, color)
+        
+        strip.show()
+        time.sleep(0.05 / EFFECT_SPEED)  # Fast twinkle
+
+def fire_flicker_effect(strip, stop_event):
+    # Base fire colors: reds, oranges, yellows
+    fire_colors = [
+        Color(255, 69, 0),   # OrangeRed
+        Color(255, 140, 0),  # DarkOrange
+        Color(255, 165, 0),  # Orange
+        Color(255, 215, 0),  # Gold
+        Color(255, 0, 0)     # Red
+    ]
+    intensities = [random.randint(50, 255) for _ in range(strip.numPixels())]  # Initial random intensities
+    
+    while not stop_event.is_set():
+        for i in range(strip.numPixels()):
+            # Flicker: random small changes
+            intensities[i] += random.randint(-30, 30)
+            intensities[i] = max(50, min(255, intensities[i]))  # Clamp for subtle flicker
+            
+            # Pick a base color and scale with intensity
+            base_color = random.choice(fire_colors)
+            r = (base_color >> 16) * intensities[i] // 255
+            g = ((base_color >> 8) & 0xFF) * intensities[i] // 255
+            b = (base_color & 0xFF) * intensities[i] // 255
+            strip.setPixelColor(i, Color(r, g, b))
+        
+        strip.show()
+        time.sleep(0.05 / EFFECT_SPEED)  # Fast flicker for realism
 # Turn off all LEDs
 def turn_off(strip):
     color_wipe(strip, Color(0, 0, 0), 10)
@@ -213,6 +333,16 @@ def get_effect_function(effect_name):
         return theater_chase_effect
     elif effect_name == 'rainbow':
         return rainbow_effect
+    elif effect_name == 'snake':
+        return snake_effect
+    elif effect_name == 'plague':
+        return plague_spread_effect
+    elif effect_name == 'random_multi':
+        return random_multi_color_effect
+    elif effect_name == 'twinkle':
+        return twinkling_starfield_effect
+    elif effect_name == 'fire_flicker':
+        return fire_flicker_effect
     else:
         raise ValueError("Unknown effect: " + effect_name)
 
@@ -400,7 +530,7 @@ def index():
     </head>
     <body>
         <div class="container">
-            <h1>LED Light Control</h1>
+            <h1>Young's Christmas Light Control!</h1>
             <div class="status">
                 <p id="current_effect">Current Effect: {{ current_effect }}</p>
                 <p id="manual_on">Manual On: {{ manual_on }}</p>
@@ -417,6 +547,11 @@ def index():
                 <button onclick="callEndpoint('/effect/wipe')">Wipe</button>
                 <button onclick="callEndpoint('/effect/chase')">Chase</button>
                 <button onclick="callEndpoint('/effect/rainbow')">Rainbow</button>
+                <button onclick="callEndpoint('/effect/snake')">Snake</button>
+                <button onclick="callEndpoint('/effect/plague')">Plague Spread</button>
+                <button onclick="callEndpoint('/effect/random_multi')">Random Multi-Color</button>
+                <button onclick="callEndpoint('/effect/twinkle')">Twinkle Starfield</button>
+                <button onclick="callEndpoint('/effect/fire_flicker')">Fire Flicker</button>
             </div>
             <h2>Custom Solid Color</h2>
             <form id="custom_color_form" onsubmit="submitForm(event, '/custom_color')">
