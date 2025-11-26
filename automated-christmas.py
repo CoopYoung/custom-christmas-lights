@@ -41,7 +41,7 @@ EFFECT_SPEED = 1.0
 CONFIG_FILE = 'led_config.json'
 
 #Music stream file 
-MUSIC_STREAM_URL = 'https://somafm.com/player24/station/christmas' \
+MUSIC_STREAM_URL = 'http://ice1.somafm.com/christmas-128-mp3'
 
 # Music process (global to control playback)
 music_process = None
