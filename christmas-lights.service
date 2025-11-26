@@ -1,0 +1,16 @@
+[Unit]
+Description=My Script Service
+After=multi-user.target
+
+[Service]
+Type=idle
+User=coop
+WorkingDirectory=/home/coop/christmas-lights
+ExecStart=sudo /home/coop/myenv/bin/python3 /home/coop/custom-christmas-lights/automated-christmas.py
+
+#Restart policy
+Restart=on-failure
+
+
+[Install]
+WantedBy=multi-user.target
