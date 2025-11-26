@@ -945,7 +945,7 @@ def main_logic():
 # Main program entry
 if __name__ == '__main__':
     # Start Flask/SocketIO in a separate thread
-    flask_thread = threading.Thread(target=socketio.run, args=(app,allow_unsafe_werkzeug=True), kwargs={'host': '0.0.0.0', 'port': 5000, 'debug': False, 'use_reloader': False})
+    flask_thread = threading.Thread(target=socketio.run, args=(app,), kwargs={'host': '0.0.0.0', 'port': 5000, 'debug': False,  'allow_unsafe_werkzeug': True, 'use_reloader': False})
     flask_thread.daemon = True
     flask_thread.start()
     
