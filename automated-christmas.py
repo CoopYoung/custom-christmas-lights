@@ -135,10 +135,10 @@ def verify_password(username, password):
 
 # Global control variables
 manual_off = False
-manual_on = False
+manual_on = True
 stop_event = threading.Event()
 current_effect_thread = None
-current_effect_func = None
+current_effect_func = SELECTED_EFFECT
 
 # Helper function to set all pixels to a color
 def color_wipe(strip, color, wait_ms=50):
@@ -951,10 +951,13 @@ def main_logic():
     global manual_on, manual_off, current_effect_func, stop_event, current_effect_thread
     load_config()  # Load on start
     current_effect_func = get_effect_function(SELECTED_EFFECT)
-    
+    bootup = True #variable to determine if it just started
     while True:
         now = datetime.datetime.now(location.tzinfo)
         
+        if bootup:
+            start_effect() #Automatically turn on on bootup if plugging in 
+            bootup = False
         # Get today's sun times
         s = sun(location.observer, date=now.date(), tzinfo=location.tzinfo)
         sunset = s['sunset']
@@ -970,7 +973,7 @@ def main_logic():
             sleep_seconds = (next_day.replace(hour=0, minute=0, second=0) - now).total_seconds()
             time.sleep(sleep_seconds)
             continue
-        
+
         should_be_on = manual_on or (not manual_off and turn_on_time <= now < turn_off_time)
         
         if should_be_on:
