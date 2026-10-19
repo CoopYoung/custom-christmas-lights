@@ -155,6 +155,39 @@ def solid_color(strip, stop_event):
     while not stop_event.is_set():
         time.sleep(1)  # Keep lit
 
+def christmas_standard(strip, stop_event, wait_ms=50):
+    wait_ms /= EFFECT_SPEED
+    color_div = 6
+    while not stop_event.is_set():
+        iter_num = 0
+        for i in range(0, strip.numPixels(), color_div):
+            iter_num += 1
+            for j in range(i, color_div + i):
+                if iter_num % 2 == 0:
+                    strip.setPixelColor(j, Color(255, 0, 0))
+                else:
+                    strip.setPixelColor(j, Color(0, 255, 0))
+            strip.show()
+            time.sleep(wait_ms / 1000.0)
+
+def patriot_effect(strip, stop_event, wait_ms=50):
+    wait_ms /= EFFECT_SPEED
+    color_div = 3
+    while not stop_event.is_set():
+        iter_num = 0
+        for i in range(0, strip.numPixels(), color_div):
+            iter_num += 1
+            for j in range(i, color_div + i):
+                if iter_num % 3 == 0:
+                    strip.setPixelColor(j, Color(255, 0, 0)) #red
+                elif iter_num % 3 == 1:
+                    strip.setPixelColor(j, Color(255, 255, 255)) #white
+                else:
+                    strip.setPixelColor(j, Color(0, 0, 255)) #blue
+            strip.show()
+            time.sleep(wait_ms / 1000.0)
+                    
+
 # Effect: Color wipe (cycles through colors)
 def color_wipe_effect(strip, stop_event):
     while not stop_event.is_set():
@@ -315,6 +348,24 @@ def random_multi_color_effect(strip, stop_event):
         strip.show()
         time.sleep(1 / EFFECT_SPEED)  # Change rate
 
+def random_multi_chunks(strip, stop_event):
+    while not stop_event.is_set():
+        chunk = []
+        for i in range(strip.numPixels()):
+            if i % 6 == 0:
+                if len(chunk) == 1:
+                    chunk.pop()
+                h = random.random()
+                s = random.uniform(0.5, 1.0)
+                l = random.uniform(0.3, 0.7)
+                r, g, b = [int(x * 255) for x in colorsys.hls_to_rgb(h, l, s)]
+                chunk.append((r, g, b))
+            else:
+                r, g, b = chunk[0]
+                strip.setPixelColor(i, Color(r, g, b))
+        strip.show()
+        time.sleep(1 / EFFECT_SPEED)
+
 def twinkling_starfield_effect(strip, stop_event):
     intensities = [0] * strip.numPixels()  # Per-LED brightness
     while not stop_event.is_set():
@@ -437,6 +488,8 @@ def turn_off(strip):
 def get_effect_function(effect_name):
     if effect_name == 'solid':
         return solid_color
+    if effect_name == 'christmas_standard':
+        return christmas_standard
     elif effect_name == 'wipe':
         return color_wipe_effect
     elif effect_name == 'chase':
@@ -451,6 +504,8 @@ def get_effect_function(effect_name):
         return plague_spread_effect
     elif effect_name == 'random_multi':
         return random_multi_color_effect
+    elif effect_name == 'random_multi_chunks':
+        return random_multi_chunks
     elif effect_name == 'twinkle':
         return twinkling_starfield_effect
     elif effect_name == 'fire_flicker':
@@ -459,6 +514,8 @@ def get_effect_function(effect_name):
         return phase_out
     elif effect_name == 'michigan':
         return michigan
+    elif effect_name == 'patriot':
+        return patriot_effect
     else:
         raise ValueError("Unknown effect: " + effect_name)
 
@@ -665,6 +722,7 @@ def index():
             <h2>Select Effect</h2>
             <div class="effect-buttons">
                 <button onclick="callEndpoint('/effect/solid')">Solid</button>
+                <button onclick="callEndpoint('/effect/christmas_standard')">Christmas</button>
                 <button onclick="callEndpoint('/effect/wipe')">Wipe</button>
                 <button onclick="callEndpoint('/effect/chase')">Chase</button>
                 <button onclick="callEndpoint('/effect/rainbow')">Rainbow</button>
@@ -672,10 +730,12 @@ def index():
                 <button onclick="callEndpoint('/effect/snake')">Snake</button>
                 <button onclick="callEndpoint('/effect/plague')">Plague Spread</button>
                 <button onclick="callEndpoint('/effect/random_multi')">Random Multi-Color</button>
+                <button onclick="callEndpoint('/effect/random_multi_chunks')">Random Chunks</button>
                 <button onclick="callEndpoint('/effect/twinkle')">Twinkle Starfield</button>
                 <button onclick="callEndpoint('/effect/fire_flicker')">Fire Flicker</button>
                 <button onclick="callEndpoint('/effect/phase_out')">Phase Out</button>
                 <button onclick="callEndpoint('/effect/michigan')">Michigan</button>
+                <button onclick="callEndpoint('/effect/patriot')">Patriotic</button>
             </div>
             <h2>Custom Solid Color</h2>
             <form id="custom_color_form" onsubmit="submitForm(event, '/custom_color')">
