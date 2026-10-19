@@ -209,6 +209,22 @@ def rainbow_effect(strip, stop_event):
     while not stop_event.is_set():
         rainbow_cycle(strip)
 
+def rainbow_variant(strip, wait_ms=20):
+    wait_ms /= EFFECT_SPEED
+    for j in range(256):
+        if stop_event.is_set(): return
+        for i in range(strip.numPixels()):
+            if i % 2 == 0:
+                strip.setPixelColor(i, Color(0, 0, 255))
+            else:
+                strip.setPixelColor(i, wheel((i + j) & 255))
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
+
+def rainbow_variant_effect(strip, stop_event):
+    while not stop_event.is_set():
+        rainbow_variant(strip)
+
 def snake_effect(strip, stop_event):
     snake_length = 15  # Initial length
     position = 0  # Starting position
@@ -427,6 +443,8 @@ def get_effect_function(effect_name):
         return theater_chase_effect
     elif effect_name == 'rainbow':
         return rainbow_effect
+    elif effect_name == 'rainbow_variant':
+        return rainbow_variant_effect
     elif effect_name == 'snake':
         return snake_effect
     elif effect_name == 'plague':
@@ -650,6 +668,7 @@ def index():
                 <button onclick="callEndpoint('/effect/wipe')">Wipe</button>
                 <button onclick="callEndpoint('/effect/chase')">Chase</button>
                 <button onclick="callEndpoint('/effect/rainbow')">Rainbow</button>
+                <button onclick="callEndpoint('/effect/rainbow_variant')">Rainbow Variant</button>
                 <button onclick="callEndpoint('/effect/snake')">Snake</button>
                 <button onclick="callEndpoint('/effect/plague')">Plague Spread</button>
                 <button onclick="callEndpoint('/effect/random_multi')">Random Multi-Color</button>
