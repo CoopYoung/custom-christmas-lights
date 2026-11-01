@@ -187,6 +187,19 @@ def patriot_effect(strip, stop_event, wait_ms=50):
             strip.show()
             time.sleep(wait_ms / 1000.0)
                     
+def halloween_effect(strip, stop_event, wait_ms=50):
+    wait_ms /= EFFECT_SPEED
+    while not stop_event.is_set():
+        iter_num = 0
+        for i in range(0, strip.numPixels()):
+            if i % 2 == 0:
+                strip.setPixelColor(i, Color(255, 75, 0)) #orange
+            else:
+                strip.setPixelColor(i, Color(212, 0, 255)) #purple
+            strip.show()
+            time.sleep(wait_ms / 1000.0)
+
+            
 
 # Effect: Color wipe (cycles through colors)
 def color_wipe_effect(strip, stop_event):
@@ -516,6 +529,8 @@ def get_effect_function(effect_name):
         return michigan
     elif effect_name == 'patriot':
         return patriot_effect
+    elif effect_name == 'halloween':
+        return halloween_effect
     else:
         raise ValueError("Unknown effect: " + effect_name)
 
@@ -736,6 +751,7 @@ def index():
                 <button onclick="callEndpoint('/effect/phase_out')">Phase Out</button>
                 <button onclick="callEndpoint('/effect/michigan')">Michigan</button>
                 <button onclick="callEndpoint('/effect/patriot')">Patriotic</button>
+                <button onclick="callEndpoint('/effect/halloween')">Halloween</button>
             </div>
             <h2>Custom Solid Color</h2>
             <form id="custom_color_form" onsubmit="submitForm(event, '/custom_color')">
